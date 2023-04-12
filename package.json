@@ -1,0 +1,10 @@
+{
+  "name": "com.kinetix.uicommon",
+  "version": "0.5.0",
+  "displayName": "Kinetix Common UI",
+  "description": "Kinetix Common UI classes to share between different UIs",
+  "author": {
+    "name": "Kinetix",
+    "url": "https://www.kinetix.tech"
+  }
+}
