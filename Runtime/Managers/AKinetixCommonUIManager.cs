@@ -16,9 +16,8 @@ namespace Kinetix.UI.Common
     {
         [SerializeField] protected MainView        mainView;
 
-        public static bool IsInputEnabled;
-
         private readonly int c_BaseCountEmotesOnWheel = 5;
+        private readonly int c_CountSlotOnWheel = 9;
 
         // CACHE
         protected Dictionary<int, AnimationIds> FavoritesAnimationIdByIndex;
@@ -28,11 +27,7 @@ namespace Kinetix.UI.Common
         protected void Initialize(KinetixCommonUIConfiguration KinetixCommonConfig)
         {
             DontDestroyOnLoad(gameObject);
-            EnableInput();
             mainView.Show();
-
-            KinetixUIBehaviour.OnEnableInput  += EnableInput;
-            KinetixUIBehaviour.OnDisableInput += DisableInput;
 
             kinetixCommonUIConfiguration = KinetixCommonConfig;
 
@@ -64,16 +59,6 @@ namespace Kinetix.UI.Common
 
             KinetixCore.Animation.OnRegisteredLocalPlayer += LoadData;
             LoadData();
-        }
-
-        private void EnableInput()
-        {
-            IsInputEnabled = true;
-        }
-
-        private void DisableInput()
-        {
-            IsInputEnabled = false;
         }
 
         private void OnUpdatedAccount()
@@ -136,8 +121,8 @@ namespace Kinetix.UI.Common
             SaveSystem.UpdateSave(FavoritesAnimationIdByIndex);
             OnLoadData();
 
-            int page = _Index / 9 + 1;
-            int tile = _Index % 9 + 1;
+            int page = _Index / c_CountSlotOnWheel + 1;
+            int tile = _Index % c_CountSlotOnWheel + 1;
 
             KinetixAnalytics.SendEvent("Add_To_Wheel", ids.UUID, KinetixAnalytics.Page.EmoteWheel, KinetixAnalytics.Event_type.DragDrop, tile, page);
         }
@@ -154,10 +139,8 @@ namespace Kinetix.UI.Common
                 KinetixCore.Animation.UnloadLocalPlayerAnimation(idsToRemove);
             OnLoadData();
 
-            //KinetixConstantsEmoteWheel.c_CountSlotOnWheel
-            int page = _Index / 9 + 1;
-            int tile = _Index % 9 + 1;
-
+            int page = _Index / c_CountSlotOnWheel + 1;
+            int tile = _Index % c_CountSlotOnWheel + 1;
             KinetixAnalytics.SendEvent("Remove_From_Wheel", idsToRemove.UUID, KinetixAnalytics.Page.EmoteWheel, KinetixAnalytics.Event_type.DragDrop, tile, page);
         }
 

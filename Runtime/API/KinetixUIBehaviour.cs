@@ -15,9 +15,6 @@ namespace Kinetix.UI.Common
         public static Action<EKinetixUICategory> OnShow;
         public static Action                     OnHideAll;
 
-        public static Action OnEnableInput;
-        public static Action OnDisableInput;
-
         public static  bool               IsShown => isShown;
         private static bool               isShown;
         public static EKinetixUICategory currentShownCategory;
@@ -37,16 +34,6 @@ namespace Kinetix.UI.Common
             OnHideAll?.Invoke();
             
             KinetixAnalytics.SendEvent("Close_Wheel_UI", "", KinetixAnalytics.Page.None, KinetixAnalytics.Event_type.Click);
-        }
-
-        public static void EnableInput()
-        {
-            OnEnableInput?.Invoke();
-        }
-
-        public static void DisableInput()
-        {
-            OnDisableInput?.Invoke();
         }
     }
 }
