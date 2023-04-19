@@ -9,7 +9,6 @@ namespace Kinetix.UI
 {
     public static class InputMappingConstants
     {
-        public const string OPEN = "Open";
         public const string NEXT_PAGE = "NextPage";
         public const string PREV_PAGE = "PrevPage";
         public const string NEXT_TAB = "NextTab";

@@ -18,7 +18,6 @@ namespace Kinetix.UI
         public static Action OnHitPrevPage;
         public static Action OnHitNextTab;
         public static Action OnHitPrevTab;
-        public static Action OnHitOpenWheel;
         public static Action<Vector2> OnNavigate;
         public static Action OnCancelNavigate;
         public static Action OnSelect;
@@ -37,9 +36,7 @@ namespace Kinetix.UI
 
             assetInputAction = ScriptableObject.CreateInstance<InputActionAsset>();
             assetInputAction.AddActionMap(currentActionMap);
-            // assetInputAction.Enable();
             
-            assetInputAction[InputMappingConstants.OPEN].performed += _ctx => { HitOpenWheel(_ctx); };
             assetInputAction[InputMappingConstants.NEXT_PAGE].performed += _ctx => { HitNextPage(_ctx); };
             assetInputAction[InputMappingConstants.PREV_PAGE].performed += _ctx => { HitPrevPage(_ctx); };
             assetInputAction[InputMappingConstants.NEXT_TAB].performed += _ctx => { HitNextTab(_ctx); };
@@ -72,13 +69,13 @@ namespace Kinetix.UI
 
         public static void Enable()
         {
-            if(assetInputAction)
+            if(assetInputAction && !assetInputAction.enabled)
                 assetInputAction.Enable();
         }
 
         public static void Disable()
         {
-            if(assetInputAction)
+            if(assetInputAction && assetInputAction.enabled)
                 assetInputAction.Disable();
         }
 
@@ -114,21 +111,14 @@ namespace Kinetix.UI
 
         private static void HitNextTab(InputAction.CallbackContext ctx)
         {
-            if(ctx.ReadValue<float>() == 1f)
-                OnHitNextTab?.Invoke();
+            OnHitNextTab?.Invoke();
         }
 
         private static void HitPrevTab(InputAction.CallbackContext ctx)
         {
-            if(ctx.ReadValue<float>() == 1f)
-                OnHitPrevTab?.Invoke();
+            OnHitPrevTab?.Invoke();
         }
-
-        private static void HitOpenWheel(InputAction.CallbackContext ctx)
-        {
-            OnHitOpenWheel?.Invoke();
-        }
-
+        
         private static void HitNavigation(InputAction.CallbackContext ctx)
         {
             Vector2 inputVector = ctx.ReadValue<Vector2>();
