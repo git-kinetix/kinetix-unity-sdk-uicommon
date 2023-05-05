@@ -13,6 +13,7 @@ namespace Kinetix.UI
     {
         private const string c_KinetixSelected = "c_KinetixSelected";
         private const string c_KinetixDidSave  = "c_KinetixDidSave";
+        private const string c_KinetixEmoteChecked = "c_KinetixEmoteChecked";
 
         public static bool DidSave()
         {
@@ -48,6 +49,17 @@ namespace Kinetix.UI
 
             string json = PlayerPrefs.GetString(c_KinetixSelected, "");
             return WrapperFavoriteDataCollection.Deserialize(json);
+        }
+
+
+        public static bool DidEmoteChecked(string _UUID)
+        {
+            return PlayerPrefs.HasKey(c_KinetixEmoteChecked+_UUID);
+        }
+
+        public static void SaveEmoteChecked(string _UUID)
+        {
+            PlayerPrefs.SetInt(c_KinetixEmoteChecked+_UUID, 1);
         }
     }
 }

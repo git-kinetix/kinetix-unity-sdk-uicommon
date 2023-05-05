@@ -15,14 +15,15 @@ namespace Kinetix.UI.Common
         protected override void Awake()
         {
             base.Awake();
-            KinetixUIBehaviour.OnShow    += Show;
-            KinetixUIBehaviour.OnHideAll += Hide;
+            KinetixUIBehaviour.OnShow             += Show;
+            
+            KinetixUIBehaviour.OnHideAll          += Hide;
         }
 
         protected virtual void OnDestroy()
         {
-            KinetixUIBehaviour.OnShow    -= Show;
-            KinetixUIBehaviour.OnHideAll -= Hide;
+            KinetixUIBehaviour.OnShow             -= Show; ;
+            KinetixUIBehaviour.OnHideAll          -= Hide;
         }
 
         public override void Show()
@@ -47,7 +48,7 @@ namespace Kinetix.UI.Common
         {
             if (_Category != Category)
                 return;
-
+            
             Show();
         }
 
