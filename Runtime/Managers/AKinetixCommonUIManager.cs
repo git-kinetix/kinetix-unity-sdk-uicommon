@@ -18,11 +18,15 @@ namespace Kinetix.UI.Common
 
         private readonly int c_BaseCountEmotesOnWheel = 5;
         private readonly int c_CountSlotOnWheel = 9;
+        private readonly int c_DaysOfNotification = 1;
+
 
         // CACHE
         protected Dictionary<int, AnimationIds> FavoritesAnimationIdByIndex;
 
         protected KinetixCommonUIConfiguration kinetixCommonUIConfiguration;
+
+        protected bool bShowNotificationNewEmotes = false;
 
         protected void Initialize(KinetixCommonUIConfiguration KinetixCommonConfig)
         {
@@ -53,6 +57,7 @@ namespace Kinetix.UI.Common
         protected virtual void Setup()
         {
             KinetixCore.Account.OnUpdatedAccount += OnUpdatedAccount;
+            KinetixCore.Account.OnConnectedAccount += OnConnectedAccount;
 
             FavoritesAnimationIdByIndex ??= new Dictionary<int, AnimationIds>();
             FavoritesAnimationIdByIndex =   SaveSystem.DeserializeSave();
@@ -73,11 +78,14 @@ namespace Kinetix.UI.Common
                 List<AnimationIds>      ids       = new List<AnimationIds>();
                 List<AnimationMetadata> metadatas = userMetadatas.ToList();
 
+                //if has new emotes, show notification indication visual on menu tab Bag
+                KinetixUI.OnUpdateNotificationNewEmote?.Invoke( HasNewEmotes(metadatas) );
+
                 if (!SaveSystem.DidSave() && FavoritesAnimationIdByIndex.Keys.Count < c_BaseCountEmotesOnWheel)
                 {
                     int maxAnimationsCount = Mathf.Min(c_BaseCountEmotesOnWheel, metadatas.Count);
                     int counter            = FavoritesAnimationIdByIndex.Keys.Count;
-                
+
                     for (int i = counter; i < maxAnimationsCount; i++)
                     {
                         int index = (int)Mathf.Ceil(i / 2.0f);
@@ -101,6 +109,25 @@ namespace Kinetix.UI.Common
             });
         }
 
+        protected bool HasNewEmotes(List<AnimationMetadata> listMetadata)
+        {
+            bool bNoNewEmotes = false;
+            //is there new emote creates during the last day ? (c_DaysOfNotification) 
+            for (int i = 0; i < listMetadata.Count; i++)
+            {
+                if( System.DateTime.Compare(listMetadata[i].CreatedAt, System.DateTime.Now.AddDays(-c_DaysOfNotification)) > 0 )
+                {
+                    //but has not be checked already
+                    if( !SaveSystem.DidEmoteChecked(listMetadata[i].Ids.UUID) )
+                    {
+                        bNoNewEmotes = true;
+                        break;
+                    }
+                }
+            }
+            return bNoNewEmotes;
+        }
+
         private void InitInputManager (KinetixCommonUIConfiguration kinetixCommonConfiguration)
         {
             if( kinetixCommonConfiguration == null)
@@ -120,6 +147,7 @@ namespace Kinetix.UI.Common
             FavoritesAnimationIdByIndex.Add(_Index, ids);
             SaveSystem.UpdateSave(FavoritesAnimationIdByIndex);
             OnLoadData();
+
 
             int page = _Index / c_CountSlotOnWheel + 1;
             int tile = _Index % c_CountSlotOnWheel + 1;
@@ -153,5 +181,7 @@ namespace Kinetix.UI.Common
 
         // On Should Reload Views
         protected abstract void OnLoadData();
+        // On New Account Connected
+        protected abstract void OnConnectedAccount();
     }
 }
