@@ -20,9 +20,9 @@ namespace Kinetix.UI.Common
         private readonly int c_CountSlotOnWheel = 9;
         private readonly int c_DaysOfNotification = 1;
 
-
         // CACHE
         protected Dictionary<int, AnimationIds> FavoritesAnimationIdByIndex;
+        protected Dictionary<string, ContextualEmote> ContextEmotesByEventName;
 
         protected KinetixCommonUIConfiguration kinetixCommonUIConfiguration;
 
@@ -33,6 +33,8 @@ namespace Kinetix.UI.Common
             DontDestroyOnLoad(gameObject);
             mainView.Show();
 
+            if(KinetixCommonConfig == null)
+                KinetixCommonConfig = new KinetixCommonUIConfiguration();
             kinetixCommonUIConfiguration = KinetixCommonConfig;
 
             InitInputManager(kinetixCommonUIConfiguration);
@@ -60,7 +62,10 @@ namespace Kinetix.UI.Common
             KinetixCore.Account.OnConnectedAccount += OnConnectedAccount;
 
             FavoritesAnimationIdByIndex ??= new Dictionary<int, AnimationIds>();
-            FavoritesAnimationIdByIndex =   SaveSystem.DeserializeSave();
+            FavoritesAnimationIdByIndex = SaveSystem.DeserializeSave();
+
+            ContextEmotesByEventName ??= new Dictionary<string, ContextualEmote>();
+            ContextEmotesByEventName = SaveSystem.DeserializeContextSave( KinetixCore.Context.GetContextEmotes() );
 
             KinetixCore.Animation.OnRegisteredLocalPlayer += LoadData;
             LoadData();
@@ -81,6 +86,7 @@ namespace Kinetix.UI.Common
                 //if has new emotes, show notification indication visual on menu tab Bag
                 KinetixUI.OnUpdateNotificationNewEmote?.Invoke( HasNewEmotes(metadatas) );
 
+                //for add emote in the wheel if there is no in the wheel playerprefs
                 if (!SaveSystem.DidSave() && FavoritesAnimationIdByIndex.Keys.Count < c_BaseCountEmotesOnWheel)
                 {
                     int maxAnimationsCount = Mathf.Min(c_BaseCountEmotesOnWheel, metadatas.Count);
@@ -96,12 +102,21 @@ namespace Kinetix.UI.Common
                     }
                 }
 
+                //add in the ids to preload the Emotes that the user has in favorites
                 foreach (KeyValuePair<int, AnimationIds> kvp in FavoritesAnimationIdByIndex)
                 {
                     if (metadatas.Exists(data => data.Ids.UUID == kvp.Value.UUID))
                         ids.Add(kvp.Value);
                 }
-            
+
+
+                //add in the ids to preload the Emotes that the user has in context
+                foreach (KeyValuePair<string, ContextualEmote> kvp in ContextEmotesByEventName)
+                {
+                    if (metadatas.Exists(data => data.Ids.UUID == kvp.Value.EmoteUuid))
+                        ids.Add(new AnimationIds(kvp.Value.EmoteUuid));
+                }
+
                 OnLoadData();
                 
                 if (ids.Count > 0)
@@ -148,7 +163,6 @@ namespace Kinetix.UI.Common
             SaveSystem.UpdateSave(FavoritesAnimationIdByIndex);
             OnLoadData();
 
-
             int page = _Index / c_CountSlotOnWheel + 1;
             int tile = _Index % c_CountSlotOnWheel + 1;
 
@@ -177,6 +191,28 @@ namespace Kinetix.UI.Common
             KinetixUI.HideAll();
             KinetixUI.OnPlayedAnimationWithEmoteSelector?.Invoke(_IDs);
             KinetixCore.Animation.PlayAnimationOnLocalPlayer(_IDs);
+        }
+
+        protected void OnAddContext(string eventName, string UUID)
+        {
+            if (ContextEmotesByEventName == null)
+                return;
+            if (ContextEmotesByEventName.ContainsKey(eventName))
+                ContextEmotesByEventName[eventName].EmoteUuid = UUID;
+
+            SaveSystem.UpdateContextSave(ContextEmotesByEventName);
+            KinetixCore.Context.RegisterEmoteForContext(eventName, UUID);
+        }
+
+        protected void OnRemoveContext(string eventName)
+        {
+            if (ContextEmotesByEventName == null)
+                return;
+            if (ContextEmotesByEventName.ContainsKey(eventName))
+                ContextEmotesByEventName[eventName].EmoteUuid = "";
+
+            SaveSystem.UpdateContextSave(ContextEmotesByEventName);
+            KinetixCore.Context.RegisterEmoteForContext(eventName, "");
         }
 
         // On Should Reload Views

@@ -7,6 +7,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System;
+using UnityEngine.EventSystems;
 
 namespace Kinetix.UI
 {
@@ -59,6 +60,9 @@ namespace Kinetix.UI
                     if(lastDevice.displayName != currentDevice)
                     {
                         currentDevice = lastDevice.displayName;
+                        if(lastDevice is Gamepad)
+                            EventSystem.current.SetSelectedGameObject(null);
+
                         OnChangeDevice?.Invoke(currentDevice);
                     }
                 }
@@ -144,6 +148,5 @@ namespace Kinetix.UI
         {
             OnDeleteMode?.Invoke();
         }
-
     }
 }

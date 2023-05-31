@@ -8,10 +8,12 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-
-[CreateAssetMenu(menuName="Kinetix/CustomKinetixInputActionMap")]
-public class KinetixInputMapSO : ScriptableObject
+namespace Kinetix.UI
 {
-    [SerializeField]
-    public InputActionMap kinetixActionMap;
+    [CreateAssetMenu(menuName="Kinetix/CustomKinetixInputActionMap")]
+    public class KinetixInputMapSO : ScriptableObject
+    {
+        [SerializeField]
+        public InputActionMap kinetixActionMap;
+    }
 }

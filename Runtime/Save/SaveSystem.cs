@@ -14,6 +14,12 @@ namespace Kinetix.UI
         private const string c_KinetixSelected = "c_KinetixSelected";
         private const string c_KinetixDidSave  = "c_KinetixDidSave";
         private const string c_KinetixEmoteChecked = "c_KinetixEmoteChecked";
+        private const string c_KinetixEmoteContext = "c_KinetixEmoteContext";
+        private const string c_KinetixEmoteContextSaved = "c_KinetixEmoteContextSaved";
+
+        //*****************************************************************
+        // FAVORITE EMOTE
+        //*****************************************************************
 
         public static bool DidSave()
         {
@@ -51,6 +57,9 @@ namespace Kinetix.UI
             return WrapperFavoriteDataCollection.Deserialize(json);
         }
 
+        //*****************************************************************
+        // Notification Emote CHECK
+        //*****************************************************************
 
         public static bool DidEmoteChecked(string _UUID)
         {
@@ -61,5 +70,38 @@ namespace Kinetix.UI
         {
             PlayerPrefs.SetInt(c_KinetixEmoteChecked+_UUID, 1);
         }
+
+        //*****************************************************************
+        // CONTEXTUAL EMOTE
+        //*****************************************************************
+
+        public static bool DidContextSave()
+        {
+            return PlayerPrefs.HasKey(c_KinetixEmoteContextSaved);
+        }
+        
+        public static void UpdateContextSave(Dictionary<string, ContextualEmote> _ContextualEmotes)
+        {
+            string json = SerializeSaveContext(_ContextualEmotes);
+            PlayerPrefs.SetInt(c_KinetixEmoteContextSaved, 1);
+            PlayerPrefs.SetString(c_KinetixEmoteContext, json);
+        }
+
+        private static string SerializeSaveContext(Dictionary<string, ContextualEmote> contextEmotes)
+        {
+            return WrapperContextDataCollection.Serialize(contextEmotes);
+        }
+
+        public static Dictionary<string, ContextualEmote> DeserializeContextSave( Dictionary<string, ContextualEmote> contextEmotes )
+        {
+            if (!PlayerPrefs.HasKey(c_KinetixEmoteContext))
+            {
+                return contextEmotes;
+            }
+
+            string json = PlayerPrefs.GetString(c_KinetixEmoteContext, "");
+            return WrapperContextDataCollection.Deserialize(json, contextEmotes);
+        }
+
     }
 }

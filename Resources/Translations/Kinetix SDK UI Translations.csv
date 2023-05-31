@@ -2,8 +2,10 @@ Key/Tag	English	French	Japanese	ChineseSimplified	German	Spanish	Portuguese
 t_bag	Bag	Sac	バッグ	包	Tasche	Mochila	Mochila
 t_wheel	Wheel	Roue	ホイール	轮子	Rad	Ruleta	Roda
 t_create	Create	Créer	生み出す	开发	Erstellen	Crear	Criar
+t_context	Contextual	Contextuel	コンテキスト	上下文	Kontextabhängig	Contextual	Contextual
 t_page	Page	Page	ページ	页数	Seite	Página	Página
 t_emote	Emote	Emote	エモート	动画表情	Emote	Emote	Emote
+t_event	Event	Evénement	こと	事件	Event	Evento	Evento
 t_emotes	Emotes	Emotes	エモート	动画表情	Emotes	Emotes	Emotes
 t_import	Import	Importer	インポート	导入	Importieren	Importar	Importar
 t_delete	Delete	Supprimer	消す	删除	Löschen	Eliminar	Apagar 
@@ -13,3 +15,4 @@ t_builder	Emote Builder	Créateur d'Emotes	エモートクリエイター	动画
 t_scan	Scan me	Scanne moi	スキャンミー	扫我	Scannen mich	Escanearme	Digitalizar-me
 t_or	Or	Ou	または	或	Oder	O	Ou
 t_copy	Copy	Copier	コピー	复制	Kopieren	Copiar	Copiar
+t_place_here	Place Here	Placer Ici	ここに置く	放在这里	Hier platzieren	Colocar aquí	Colocar aqui

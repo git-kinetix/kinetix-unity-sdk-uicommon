@@ -10,6 +10,7 @@ namespace Kinetix.UI
     {
         EMOTE_SELECTOR,
         INVENTORY,
-        CREATE
+        CREATE,
+        CONTEXT
     }
 }
