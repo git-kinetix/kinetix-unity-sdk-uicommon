@@ -1,6 +1,6 @@
 {
   "name": "com.kinetix.uicommon",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "displayName": "Kinetix Common UI",
   "description": "Kinetix Common UI classes to share between different UIs",
   "author": {
