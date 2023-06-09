@@ -28,6 +28,8 @@ namespace Kinetix.UI.Common
 
         protected bool bShowNotificationNewEmotes = false;
 
+        const string LOCK_FAVORITES_ID = "Wheel Favorites";
+
         protected void Initialize(KinetixCommonUIConfiguration KinetixCommonConfig)
         {
             DontDestroyOnLoad(gameObject);
@@ -67,6 +69,8 @@ namespace Kinetix.UI.Common
             ContextEmotesByEventName ??= new Dictionary<string, ContextualEmote>();
             ContextEmotesByEventName = SaveSystem.DeserializeContextSave( KinetixCore.Context.GetContextEmotes() );
 
+            
+
             KinetixCore.Animation.OnRegisteredLocalPlayer += LoadData;
             LoadData();
         }
@@ -80,48 +84,56 @@ namespace Kinetix.UI.Common
         {
             KinetixCore.Metadata.GetUserAnimationMetadatas((userMetadatas) =>
             {
-                List<AnimationIds>      ids       = new List<AnimationIds>();
                 List<AnimationMetadata> metadatas = userMetadatas.ToList();
 
                 //if has new emotes, show notification indication visual on menu tab Bag
                 KinetixUI.OnUpdateNotificationNewEmote?.Invoke( HasNewEmotes(metadatas) );
 
-                //for add emote in the wheel if there is no in the wheel playerprefs
-                if (!SaveSystem.DidSave() && FavoritesAnimationIdByIndex.Keys.Count < c_BaseCountEmotesOnWheel)
-                {
-                    int maxAnimationsCount = Mathf.Min(c_BaseCountEmotesOnWheel, metadatas.Count);
-                    int counter            = FavoritesAnimationIdByIndex.Keys.Count;
-
-                    for (int i = counter; i < maxAnimationsCount; i++)
-                    {
-                        int index = (int)Mathf.Ceil(i / 2.0f);
-                        index *= (i % 2 == 0 ? -1 : 1);
-                        index =  (int)(Mathf.Floor(Mathf.Repeat((float)index, 9.0f)));
-                        if (!FavoritesAnimationIdByIndex.ContainsKey(index))
-                            FavoritesAnimationIdByIndex.Add(index, metadatas[i].Ids);
-                    }
-                }
-
-                //add in the ids to preload the Emotes that the user has in favorites
-                foreach (KeyValuePair<int, AnimationIds> kvp in FavoritesAnimationIdByIndex)
-                {
-                    if (metadatas.Exists(data => data.Ids.UUID == kvp.Value.UUID))
-                        ids.Add(kvp.Value);
-                }
-
-
-                //add in the ids to preload the Emotes that the user has in context
-                foreach (KeyValuePair<string, ContextualEmote> kvp in ContextEmotesByEventName)
-                {
-                    if (metadatas.Exists(data => data.Ids.UUID == kvp.Value.EmoteUuid))
-                        ids.Add(new AnimationIds(kvp.Value.EmoteUuid));
-                }
-
-                OnLoadData();
+                LoadFavorites(metadatas);
+                LoadContexts(metadatas);
                 
-                if (ids.Count > 0)
-                    KinetixCore.Animation.LoadLocalPlayerAnimations(ids.ToArray());
+                OnLoadData();
             });
+        }
+
+        private void LoadFavorites(List<AnimationMetadata> _AnimationMetadatas)
+        {
+            List<AnimationIds> ids = new List<AnimationIds>();
+            
+            //for add emote in the wheel if there is no in the wheel playerprefs
+            if (!SaveSystem.DidSave() && FavoritesAnimationIdByIndex.Keys.Count < c_BaseCountEmotesOnWheel)
+            {
+                int maxAnimationsCount = Mathf.Min(c_BaseCountEmotesOnWheel, _AnimationMetadatas.Count);
+                int counter            = FavoritesAnimationIdByIndex.Keys.Count;
+
+                for (int i = counter; i < maxAnimationsCount; i++)
+                {
+                    int index = (int)Mathf.Ceil(i / 2.0f);
+                    index *= (i % 2 == 0 ? -1 : 1);
+                    index =  (int)(Mathf.Floor(Mathf.Repeat((float)index, 9.0f)));
+                    if (!FavoritesAnimationIdByIndex.ContainsKey(index))
+                        FavoritesAnimationIdByIndex.Add(index, _AnimationMetadatas[i].Ids);
+                }
+            }
+
+            //add in the ids to preload the Emotes that the user has in favorites
+            foreach (KeyValuePair<int, AnimationIds> kvp in FavoritesAnimationIdByIndex)
+            {
+                if (_AnimationMetadatas.Exists(data => data.Ids.UUID == kvp.Value.UUID))
+                    ids.Add(kvp.Value);
+            }
+            
+            if (ids.Count > 0)
+                KinetixCore.Animation.LoadLocalPlayerAnimations(ids.ToArray(), LOCK_FAVORITES_ID);
+        }
+
+        private void LoadContexts(List<AnimationMetadata> _AnimationMetadatas)
+        {
+            foreach (KeyValuePair<string, ContextualEmote> emoteByContext in ContextEmotesByEventName)
+            {
+                if (_AnimationMetadatas.Exists(data => data.Ids.UUID == emoteByContext.Value.EmoteUuid))
+                    KinetixCore.Context.RegisterEmoteForContext(emoteByContext.Key, emoteByContext.Value.EmoteUuid);
+            }
         }
 
         protected bool HasNewEmotes(List<AnimationMetadata> listMetadata)
@@ -156,17 +168,18 @@ namespace Kinetix.UI.Common
 
         protected void OnAddFavoriteAnimation(int _Index, AnimationIds ids)
         {
-            KinetixCore.Animation.LoadLocalPlayerAnimation(ids);
+            KinetixCore.Animation.LoadLocalPlayerAnimation(ids, LOCK_FAVORITES_ID);
+
             if (FavoritesAnimationIdByIndex.ContainsKey(_Index))
                 OnRemoveFavoriteAnimation(_Index);
+
             FavoritesAnimationIdByIndex.Add(_Index, ids);
+            
             SaveSystem.UpdateSave(FavoritesAnimationIdByIndex);
             OnLoadData();
 
-            int page = _Index / c_CountSlotOnWheel + 1;
             int tile = _Index % c_CountSlotOnWheel + 1;
-
-            KinetixAnalytics.SendEvent("Add_To_Wheel", ids.UUID, KinetixAnalytics.Page.EmoteWheel, KinetixAnalytics.Event_type.DragDrop, tile, page);
+            KinetixAnalytics.SendEvent("Add_To_Wheel", ids.UUID, KinetixAnalytics.Page.EmoteWheel, KinetixAnalytics.Event_type.DragDrop, tile);
         }
 
         protected void OnRemoveFavoriteAnimation(int _Index)
@@ -177,13 +190,14 @@ namespace Kinetix.UI.Common
             AnimationIds idsToRemove = FavoritesAnimationIdByIndex[_Index];
             FavoritesAnimationIdByIndex.Remove(_Index);
             SaveSystem.UpdateSave(FavoritesAnimationIdByIndex);
+            
             if (!FavoritesAnimationIdByIndex.Values.ToList().Exists(id => id.Equals(idsToRemove)))
-                KinetixCore.Animation.UnloadLocalPlayerAnimation(idsToRemove);
+                KinetixCore.Animation.UnloadLocalPlayerAnimation(idsToRemove, LOCK_FAVORITES_ID);
+
             OnLoadData();
 
-            int page = _Index / c_CountSlotOnWheel + 1;
             int tile = _Index % c_CountSlotOnWheel + 1;
-            KinetixAnalytics.SendEvent("Remove_From_Wheel", idsToRemove.UUID, KinetixAnalytics.Page.EmoteWheel, KinetixAnalytics.Event_type.DragDrop, tile, page);
+            KinetixAnalytics.SendEvent("Remove_From_Wheel", idsToRemove.UUID, KinetixAnalytics.Page.EmoteWheel, KinetixAnalytics.Event_type.DragDrop, tile);
         }
 
         protected void OnSelectAnimation(AnimationIds _IDs)
@@ -212,7 +226,7 @@ namespace Kinetix.UI.Common
                 ContextEmotesByEventName[eventName].EmoteUuid = "";
 
             SaveSystem.UpdateContextSave(ContextEmotesByEventName);
-            KinetixCore.Context.RegisterEmoteForContext(eventName, "");
+            KinetixCore.Context.UnregisterEmoteForContext(eventName);
         }
 
         // On Should Reload Views
