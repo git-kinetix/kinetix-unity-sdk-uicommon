@@ -8,94 +8,96 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.LowLevel;
 
 namespace Kinetix.UI
 {
     public class KinetixInputManager : MonoBehaviour
-	{
+    {
         private static bool IsInitialized = false;
 
-        public static Action OnHitNextPage;
-        public static Action OnHitPrevPage;
-        public static Action OnHitNextTab;
-        public static Action OnHitPrevTab;
+        public static Action          OnHitNextPage;
+        public static Action          OnHitPrevPage;
+        public static Action          OnHitNextTab;
+        public static Action          OnHitPrevTab;
         public static Action<Vector2> OnNavigate;
-        public static Action OnCancelNavigate;
-        public static Action OnSelect;
-        public static Action OnCancel;
-        public static Action OnDeleteMode;
+        public static Action          OnCancelNavigate;
+        public static Action          OnSelect;
+        public static Action          OnCancel;
+        public static Action          OnDeleteMode;
 
         public static Action<string> OnChangeDevice;
-        public static Vector2 positionTouchOrMouse;
+        public static Vector2        positionTouchOrMouse;
 
         private static InputActionAsset assetInputAction;
-        private static string currentDevice = "";
+        private static string           currentDevice = "";
 
         public static void Initialize(InputActionMap currentActionMap)
-        {    
-            if(IsInitialized) return;
+        {
+            if (IsInitialized) return;
 
             assetInputAction = ScriptableObject.CreateInstance<InputActionAsset>();
             assetInputAction.AddActionMap(currentActionMap);
-            
-            assetInputAction[InputMappingConstants.NEXT_PAGE].performed += _ctx => { HitNextPage(_ctx); };
-            assetInputAction[InputMappingConstants.PREV_PAGE].performed += _ctx => { HitPrevPage(_ctx); };
-            assetInputAction[InputMappingConstants.NEXT_TAB].performed += _ctx => { HitNextTab(_ctx); };
-            assetInputAction[InputMappingConstants.PREV_TAB].performed += _ctx => { HitPrevTab(_ctx); };
-            assetInputAction[InputMappingConstants.NAVIGATION].performed += _ctx => { HitNavigation(_ctx); };
-            assetInputAction[InputMappingConstants.NAVIGATION].canceled +=  _ctx => { HitNavigationCancel(_ctx); };
-            assetInputAction[InputMappingConstants.SELECT].performed += _ctx => { HitSelect(_ctx); };
-            assetInputAction[InputMappingConstants.CANCEL].performed += _ctx => { HitCancel(_ctx); };
+
+            assetInputAction[InputMappingConstants.NEXT_PAGE].performed   += _ctx => { HitNextPage(_ctx); };
+            assetInputAction[InputMappingConstants.PREV_PAGE].performed   += _ctx => { HitPrevPage(_ctx); };
+            assetInputAction[InputMappingConstants.NEXT_TAB].performed    += _ctx => { HitNextTab(_ctx); };
+            assetInputAction[InputMappingConstants.PREV_TAB].performed    += _ctx => { HitPrevTab(_ctx); };
+            assetInputAction[InputMappingConstants.NAVIGATION].performed  += _ctx => { HitNavigation(_ctx); };
+            assetInputAction[InputMappingConstants.NAVIGATION].canceled   += _ctx => { HitNavigationCancel(_ctx); };
+            assetInputAction[InputMappingConstants.SELECT].performed      += _ctx => { HitSelect(_ctx); };
+            assetInputAction[InputMappingConstants.CANCEL].performed      += _ctx => { HitCancel(_ctx); };
             assetInputAction[InputMappingConstants.DELETE_MODE].performed += _ctx => { HitDeleteMode(_ctx); };
-            assetInputAction[InputMappingConstants.MOUSE_OR_TOUCH_MOVE].performed += _ctx => { PerformTouchOrMouseMove(_ctx); };
+            assetInputAction[InputMappingConstants.MOUSE_OR_TOUCH_MOVE].performed +=
+                _ctx => { PerformTouchOrMouseMove(_ctx); };
 
-            InputSystem.onActionChange += (obj, change) =>
-            {
-                if (change == InputActionChange.ActionPerformed)
-                {
-                    var inputAction = (InputAction) obj;
-                    var lastControl = inputAction.activeControl;
-                    var lastDevice = lastControl.device;
-
-                    if(lastDevice.displayName != currentDevice)
-                    {
-                        currentDevice = lastDevice.displayName;
-                        if(lastDevice is Gamepad)
-                            EventSystem.current.SetSelectedGameObject(null);
-
-                        OnChangeDevice?.Invoke(currentDevice);
-                    }
-                }
-            };
+            InputSystem.onEvent += OnInputSystemDeviceChange;
 
             IsInitialized = true;
-		}
+        }
+
+        private void OnDestroy()
+        {
+            InputSystem.onEvent -= OnInputSystemDeviceChange;
+        }
+
+        private static void OnInputSystemDeviceChange(InputEventPtr eventPtr, InputDevice device)
+        {
+            if (device.displayName == currentDevice) 
+                return;
+            
+            currentDevice = device.displayName;
+            if (device is Gamepad)
+                EventSystem.current.SetSelectedGameObject(null);
+            OnChangeDevice?.Invoke(currentDevice);
+        }
 
         public static void Enable()
         {
-            if(assetInputAction && !assetInputAction.enabled)
+            if (assetInputAction && !assetInputAction.enabled)
                 assetInputAction.Enable();
         }
 
         public static void Disable()
         {
-            if(assetInputAction && assetInputAction.enabled)
+            if (assetInputAction && assetInputAction.enabled)
                 assetInputAction.Disable();
         }
 
         public static Vector2 PositionTouchOrMouse()
         {
-            return assetInputAction[InputMappingConstants.MOUSE_OR_TOUCH_MOVE].ReadValue<Vector2>();            
+            return assetInputAction[InputMappingConstants.MOUSE_OR_TOUCH_MOVE].ReadValue<Vector2>();
         }
 
         public static bool IsPressed()
         {
             return assetInputAction[InputMappingConstants.PRESS].ReadValue<float>() > 0f;
         }
-    
+
         public static bool WasReleasedThisFrame()
         {
-            return assetInputAction[InputMappingConstants.PRESS].triggered == false && assetInputAction[InputMappingConstants.PRESS].ReadValue<float>() <= 0f;            
+            return assetInputAction[InputMappingConstants.PRESS].triggered == false &&
+                   assetInputAction[InputMappingConstants.PRESS].ReadValue<float>() <= 0f;
         }
 
         private static void PerformTouchOrMouseMove(InputAction.CallbackContext ctx)
@@ -122,7 +124,7 @@ namespace Kinetix.UI
         {
             OnHitPrevTab?.Invoke();
         }
-        
+
         private static void HitNavigation(InputAction.CallbackContext ctx)
         {
             Vector2 inputVector = ctx.ReadValue<Vector2>();

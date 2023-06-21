@@ -25,9 +25,6 @@ namespace Kinetix.UI.Common
 
         public static void Show(EKinetixUICategory _Category = EKinetixUICategory.EMOTE_SELECTOR)
         {
-            if (_Category == EKinetixUICategory.CREATE && !KinetixCore.UGC.IsUGCAvailable())
-                return;
-
             isShown = true;
             currentShownCategory = _Category;
             OnDisplayEnabledTabs?.Invoke();
