@@ -5,6 +5,7 @@
 // // ----------------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using Kinetix.Utils;
 using UnityEngine;
 
@@ -17,39 +18,45 @@ namespace Kinetix.UI.Common
         public static Action<EKinetixUICategory[]> OnDisplayTabs;
         public static Action                       OnDisplayEnabledTabs;
         public static Action                       OnHideAll;
-
         
-        public static  bool               IsShown => isShown;
-        private static bool               isShown;
-        public static EKinetixUICategory currentShownCategory;
+        public static  bool                 IsShown => isShown;
+        private static bool                 isShown;
+        private static EKinetixUICategory[] lastDisplayedTab;
 
         public static void Show(EKinetixUICategory _Category = EKinetixUICategory.EMOTE_SELECTOR)
         {
+            if (lastDisplayedTab != null && lastDisplayedTab.Contains(_Category))
+            {
+                Show(lastDisplayedTab, _Category);
+                return;
+            }
+            
+            if (!isShown)
+                KinetixAnalytics.SendEvent("Open_Wheel_UI", "", KinetixAnalytics.Page.None, KinetixAnalytics.Event_type.Click);
+            
             isShown = true;
-            currentShownCategory = _Category;
             OnDisplayEnabledTabs?.Invoke();
             OnShow?.Invoke(_Category);
-
-            KinetixAnalytics.SendEvent("Open_Wheel_UI", "", KinetixAnalytics.Page.None, KinetixAnalytics.Event_type.Click);
         }
 
         public static void Show(EKinetixUICategory[] _DisplayedTabs, EKinetixUICategory _Category = EKinetixUICategory.EMOTE_SELECTOR)
         {
-            isShown = true;
-            currentShownCategory = _Category;
-            
+            if (!isShown)
+                KinetixAnalytics.SendEvent("Open_Wheel_UI", "", KinetixAnalytics.Page.None, KinetixAnalytics.Event_type.Click);
+
+            lastDisplayedTab = _DisplayedTabs;
+            isShown          = true;
             OnDisplayTabs?.Invoke(_DisplayedTabs);
             OnShow?.Invoke(_Category);
-
-            KinetixAnalytics.SendEvent("Open_Wheel_UI", "", KinetixAnalytics.Page.None, KinetixAnalytics.Event_type.Click);
         }
 
         public static void HideAll()
         {
+            if (isShown)
+                KinetixAnalytics.SendEvent("Close_Wheel_UI", "", KinetixAnalytics.Page.None, KinetixAnalytics.Event_type.Click);
+
             isShown = false;
             OnHideAll?.Invoke();
-            
-            KinetixAnalytics.SendEvent("Close_Wheel_UI", "", KinetixAnalytics.Page.None, KinetixAnalytics.Event_type.Click);
         }
     }
 }
