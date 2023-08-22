@@ -131,8 +131,8 @@ namespace Kinetix.UI.Common
         {
             foreach (KeyValuePair<string, ContextualEmote> emoteByContext in ContextEmotesByEventName)
             {
-                if (_AnimationMetadatas.Exists(data => data.Ids.UUID == emoteByContext.Value.EmoteUuid))
-                    KinetixCore.Context.RegisterEmoteForContext(emoteByContext.Key, emoteByContext.Value.EmoteUuid);
+                if (_AnimationMetadatas.Exists(data => data.Ids.UUID == emoteByContext.Value.EmoteID))
+                    KinetixCore.Context.RegisterEmoteForContext(emoteByContext.Key, emoteByContext.Value.EmoteID);
             }
         }
 
@@ -212,7 +212,7 @@ namespace Kinetix.UI.Common
             if (ContextEmotesByEventName == null)
                 return;
             if (ContextEmotesByEventName.ContainsKey(eventName))
-                ContextEmotesByEventName[eventName].EmoteUuid = UUID;
+                ContextEmotesByEventName[eventName].EmoteID = UUID;
 
             SaveSystem.UpdateContextSave(ContextEmotesByEventName);
             KinetixCore.Context.RegisterEmoteForContext(eventName, UUID);
@@ -223,7 +223,7 @@ namespace Kinetix.UI.Common
             if (ContextEmotesByEventName == null)
                 return;
             if (ContextEmotesByEventName.ContainsKey(eventName))
-                ContextEmotesByEventName[eventName].EmoteUuid = "";
+                ContextEmotesByEventName[eventName].EmoteID = "";
 
             SaveSystem.UpdateContextSave(ContextEmotesByEventName);
             KinetixCore.Context.UnregisterEmoteForContext(eventName);

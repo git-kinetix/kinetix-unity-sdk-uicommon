@@ -28,7 +28,7 @@ namespace Kinetix
                     new ContextDataWrapper()
                     {
                         EventName 		= KVP.Key,
-                        AnimationUUID	= KVP.Value.EmoteUuid
+                        AnimationUUID	= KVP.Value.EmoteID
                     });
 
             return JsonUtility.ToJson(dataCollection);
@@ -43,7 +43,7 @@ namespace Kinetix
             {
 				if( _ContextByEventName.ContainsKey(dataCollectionContextDataWrapper.EventName))
 				{
-					_ContextByEventName[dataCollectionContextDataWrapper.EventName].EmoteUuid = dataCollectionContextDataWrapper.AnimationUUID;
+					_ContextByEventName[dataCollectionContextDataWrapper.EventName].EmoteID = dataCollectionContextDataWrapper.AnimationUUID;
 				}
             }
 
