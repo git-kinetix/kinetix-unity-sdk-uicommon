@@ -124,7 +124,7 @@ namespace Kinetix.UI.Common
             }
             
             if (ids.Count > 0)
-                KinetixCore.Animation.LoadLocalPlayerAnimations(ids.ToArray(), LOCK_FAVORITES_ID);
+                KinetixCore.Animation.LoadLocalPlayerAnimations(ids.Select(id => id.UUID).ToArray(), LOCK_FAVORITES_ID);
         }
 
         private void LoadContexts(List<AnimationMetadata> _AnimationMetadatas)
@@ -168,7 +168,7 @@ namespace Kinetix.UI.Common
 
         protected void OnAddFavoriteAnimation(int _Index, AnimationIds ids)
         {
-            KinetixCore.Animation.LoadLocalPlayerAnimation(ids, LOCK_FAVORITES_ID);
+            KinetixCore.Animation.LoadLocalPlayerAnimation(ids.UUID, LOCK_FAVORITES_ID);
 
             if (FavoritesAnimationIdByIndex.ContainsKey(_Index))
                 OnRemoveFavoriteAnimation(_Index);
@@ -192,7 +192,7 @@ namespace Kinetix.UI.Common
             SaveSystem.UpdateSave(FavoritesAnimationIdByIndex);
             
             if (!FavoritesAnimationIdByIndex.Values.ToList().Exists(id => id.Equals(idsToRemove)))
-                KinetixCore.Animation.UnloadLocalPlayerAnimation(idsToRemove, LOCK_FAVORITES_ID);
+                KinetixCore.Animation.UnloadLocalPlayerAnimation(idsToRemove.UUID, LOCK_FAVORITES_ID);
 
             OnLoadData();
 
@@ -204,7 +204,7 @@ namespace Kinetix.UI.Common
         {
             KinetixUI.HideAll();
             KinetixUI.OnPlayedAnimationWithEmoteSelector?.Invoke(_IDs);
-            KinetixCore.Animation.PlayAnimationOnLocalPlayer(_IDs);
+            KinetixCore.Animation.PlayAnimationOnLocalPlayer(_IDs.UUID);
         }
 
         protected void OnAddContext(string eventName, string UUID)
